@@ -1,0 +1,344 @@
+#!/bin/bash
+
+# iconcheck.sh
+#
+# Copyright 2021 Alex Greenwood
+#
+# This program is free software (talk to IP people about this)
+#
+# This program is distributed with NO WARRANTY (talk to IP people about this)
+#
+# This program is meant to be run as a cron job on a linux server to monitor ICON-NMR sessions on multiple NMR instruments.
+# It copies IconDriverDebug and Inmracct files over from remote machines via SSH and checks them for new errors. If errors
+# are found, it assembles them into log files and sends alert emails to the user or facility manager according to settings 
+# in the customizable file error_table. This requires that the local and remote computers have password-less SSH between 
+# them enabled via a private rsa key.
+
+set -e
+set -u
+
+##default parameter/flag settings -- change these if you wish
+
+EmailFlag="y"					#Set to 'n' to refrain from sending emails when errors are detected
+TrimFlag="y" 	#Set to 'n' to let IconDriverDebug.$Instrument.full grow uncontrollably-- it may get very big
+
+##functions
+
+#This function displays usage information if there is no recognizable input file argument.
+function Show_Usage () {
+	echo ""
+	echo "Usage: iconcheck [OPTIONS]... path/to/iconcheck_input"
+	echo ""
+        echo "Options"
+        echo " -h, -?, --help                           Show this help message."
+        echo ""
+        echo " -i, --input                              Set input file (flag optional)."
+        echo ""
+        echo "-e, --email (default y)                   Set to 'n' to skip sending emails"
+        echo ""
+        echo "-t, --trim (default y)                    Set to 'n' to skip trimming IconDriverDebug.$Instrument.full"
+	echo ""
+	echo "For more information, please see the README file:"
+	echo "https://github.com/greenwoodad/iconcheck/README.md"
+	
+}
+
+function parse_flags () {
+
+while [[ ! -z "${1-}" ]] ; do
+        case "$1" in
+                -h|-\?|--help)
+                        Show_Usage
+                        exit 1
+                        ;;
+                -i|--input)
+                        shift
+                        Input="$1"
+                        ;;
+                -e|--email)
+                        shift
+                        EmailFlag="$1"
+                        ;;
+                -t|--trim)
+                        shift
+                        TrimFlag="$1"
+                        ;;
+                -*)
+                        echo "Unknown option: \"$1\""
+                        Show_Usage
+                        exit 1
+                        ;;
+                *)
+                        Input="$1"
+                        ;;
+        esac
+
+        shift
+done
+
+}
+
+#This function is used to send emails
+function Send_Email () {
+{
+echo "From: Do-Not-Reply@NMR-Facility"
+echo "To: $1"
+echo "Subject: NMR experiment on $Instrument $3"
+echo
+eval echo "$(<$ScriptsPath/emailtxt/$2)" 
+} | "$SendmailPath"/sendmail -t
+}
+
+#This function trims IconDriverDebug.$Instrument.full when it gets too large
+function TrimIconDriverDebug () {
+
+Debuglog_length="$(wc -l < "$DebugFileFull")"
+if [ $Debuglog_length -gt 500000 ];then
+	sed -i '1,250000d' "$DebugFileFull"
+	echo "IconDriverDebug.$Instrument.full reduced in length"
+fi
+
+}
+
+#This function parses the top lines of the input file
+function parse_input () {
+	#Parse input file
+	Input_File="$1"
+	Input=$( cat "$Input_File" | sed 's/ \t/  /g' | sed 's/\t /  /g' | sed 's/   */\t/g' | sed 's:\t\t*:\t:g' ) #replace space+tab with two spaces \
+	#then tab+space with two spaces, then multiple spaces with tabs, then multiple tabs with single tabs
+
+	Instrument_Array=''
+	while IFS=$'\t' read -r column1 column2 column3 column4 column5; do
+		Instrument_Array="$Instrument_Array"$'\n'${column1}
+	done < <(echo "${Input}")
+	Instrument_Array=$(echo "${Instrument_Array}"| tail -n +7 | sed '/^$/d')
+	ManagerEmail=$(grep -w "ManagerEmail" <<< "$Input" | cut -f 2 )
+	ScriptsPath=$(grep -w "ScriptsPath" <<< "$Input" | cut -f 2 )
+	SendmailPath=$(grep -w "SendmailPath" <<< "$Input" | cut -f 2 )
+
+	#Stop the script if these inputs aren't found in the input file
+	[[ -z "$ManagerEmail" ]] && { echo "ManagerEmail is empty" ; exit 1; }
+	[[ -z "$ScriptsPath" ]] && { echo "ScriptsPath is empty" ; exit 1; }
+	[[ -z "$SendmailPath" ]] && { echo "SendmailPath is empty" ; exit 1; }
+
+	InputPath="$ScriptsPath/input"
+	LogPath="$ScriptsPath/log"
+}
+
+#This function copies and reads Inmracct.brief, and notes if there have been spectrum failures
+function read_Inmracct () {
+
+	#copy accounting file over and check for recent sample failures, putting them in $Failures
+	rsync -avz -e ssh "$RemoteUser"@"$Instrument":"$INMRPath"/Inmracct.brief "$LogPath/Inmracct.brief.$Instrument"
+	Failures=$(grep -A 1 Failure "$LogPath/Inmracct.brief.$Instrument"  | tail -n 10) 
+
+	if test -f "$LogPath/recent_failures.$Instrument"; then #if failure file exists
+
+		FailureFileContents=$(cat "$LogPath/recent_failures.$Instrument") #specify previous recent failures file contents
+
+		#check if contents are the same, if not, amend the subject line on subsequent emails and update recent_failures
+		if [ "$FailureFileContents" != "$Failures" ]; then
+			SubjectAdd=" **Sample Failure**"
+			echo "$Failures" > "$LogPath/recent_failures.$Instrument"
+		else
+			SubjectAdd=""
+		fi
+	else #This is the condition when you first run the script -- there are errors but they are old
+		echo "$Failures" > "$LogPath/recent_failures.$Instrument"	
+		SubjectAdd=""
+		echo "New recent_failures.$Instrument file created, errors ignored"
+	fi
+
+}
+
+#This function copies over the latest IconDriverDebug file
+function copy_IconDriverDebug () {
+
+	##Find the latest IconDriverDebug file and copy it to scripts folder, but only if it's changed
+	DebugFile="$LogPath/IconDriverDebug.$Instrument" #name of local copy of most recent IconDriverDebug file
+
+	# Find the latest IconDriverDebug file and copy it to scripts folder on the local machine 
+	FindCmd='cd '"$DebugPath"'; find IconDriverDebug* -type f -exec stat -c "%y %n" {} + | sort -r | cut -d " " -f4 | head -n 1'
+	rsync -av --files-from=<(ssh "$RemoteUser"@"$Instrument" "$FindCmd") -e ssh "$RemoteUser"@"$Instrument":"$DebugPath" "$DebugFile" 
+
+	DebugFileFull=$"$LogPath/IconDriverDebug.$Instrument.full" #location of the full-length debug file
+	touch $DebugFileFull #In case the file does not exist
+	if ! test -f "$LogPath/debugerrors.$Instrument.log"; then #if debug errors file doesn't exist
+		touch "$LogPath/debugerrors.$Instrument.log" #Create debug errors log file
+		Debug_New="y" #Don't send emails about errors
+		echo "New debugerrors.$Instrument.log file created, errors ignored"
+	else
+		Debug_New="n" #Do send emails if there are errors	
+	fi
+
+}
+
+#This function updates the IconDriverDebug.full file
+function update_IconDriverDebugFull () {
+
+	#specify the final line of the full debug file with the text "Auto_AcqIP .as.fm .*" (which is unique)
+	#backslashes are escaped so that if a file with special characters (especially } or {) is generated the line can still be found
+	LastLine=$(grep "Auto_AcqIP .as.fm .*" "$DebugFileFull" |tail -n 1 | sed 's^\\^\x22\x27\\\\\x27\x22^g') 
+	#next, escape square brackets and carrots for similar reasons
+	LastLine=$(echo "$LastLine" | sed 's^\[^\x22\x27\\\[\x27\x22^g' | sed 's^\]^\x22\x27\\\]\x27\x22^g' | sed 's@\^@\x22\x27\\\^\x27\x22@g') 
+ 	#remove everything afer LastLine from IconDriverDebug.$Instrument.full 
+  	sed -i '\^'"$LastLine"'^Q' "$DebugFileFull"
+  	#copy the current debug file into the full debug file 
+  	if grep -Fxq "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.$Instrument.full log is present in the current IconDebug
+		echo " "
+    	sed -n "\^$LastLine^,$ p" "$DebugFile" | tail -n+1 >> "$DebugFileFull" #put everything after the previous last line into IconDriverDebug.full
+  	else
+    	cat "$DebugFile" >> "$DebugFileFull" #the IconDriverDebug file has started over and needs to be appended in its entirety to IconDriverDebug.full
+  	fi
+
+}
+
+#This function finds new debug errors since the last time the script was run
+function get_newdebugerrors () {
+
+  	#Parse the error strings from the error table:
+  	ErrorTableFile=$"$InputPath/error_table"
+	ErrorTable=$( cat "$ErrorTableFile" | sed 's/   */\t/g' | sed 's:\t\t*:\t:g' )
+  	ErrorStringArray=''
+  	while IFS=$'\t' read -r column1 column2 column3 column4; do
+    	ErrorStringArray="$ErrorStringArray"$'\n'${column1}
+  	done < <(echo "${ErrorTable}")
+
+  	ErrorStringArray=$(echo "${ErrorStringArray}"| tail -n +4 | sed '/^$/d')
+  
+  	#find all relatively recent instances of errors in IconDriverDebug.$Instrument.full and put them in recent_debug_errors
+  	RecentDebugErrors=''
+  	while IFS= read -r error_string ; do
+  		RecentDebugErrors="$RecentDebugErrors"$'\n'$(grep "$error_string" "$LogPath/IconDriverDebug.$Instrument.full" | tail -n 5)
+  	done < <(echo "${ErrorStringArray}")
+      
+  	RecentDebugErrors=$(echo "$RecentDebugErrors" | perl -ne 'print if ! $x{$_}++') #removes nonconsecutive duplicate lines, saving first instance (in case multiple errors are present on the same line)
+ 	NewDebugErrors=$(grep -vF -f "$LogPath/debugerrors.$Instrument.log" <<< "$RecentDebugErrors") #get list of errors that are new since this script was last run
+  	NewDebugErrors=$(echo "$NewDebugErrors" | sed '/^$/d') #remove blank lines
+
+}
+
+
+#This function gets the username and spectrum name corresponding to an error in IconDriverDebug file
+
+function get_user_spectrum () {
+
+	#find a line that contains the user and the spectrum name, replace & with "and," square brackets with curved brackets, and ^ with `
+   UserSpectrumString=$(tac "$DebugFileFull" | grep -A 99999 "$error" | grep -m1 -o "Auto_AcqIP .as.fm .*")
+	UserSpectrumString=$(echo "$UserSpectrumString" | sed 's^\&^and^g' | sed 's^\[^(^g'| sed 's^\]^)^g' | sed 's@\^@`@g') 
+	#find everything enclosed in outermost curly brackets
+   UserSpectrumString_B=$(echo "$UserSpectrumString" | grep -o '{.*' | rev | grep -o '}.*' | rev)	
+
+	#find final string enclosed by curly brackets
+	UserSpectrumString_C=$(echo "$UserSpectrumString_B" | rev | cut -d "{" -f1 | rev | cut -d "}" -f1) 
+
+	#find first string enclosed by curly brackets
+	UserSpectrumString_D=$(echo "$UserSpectrumString_B" | sed 's^.$^^' | grep -o '.*}' | sed 's^.$^^' | cut -c 2- )
+
+	#replace spaces in $UserSpectrumString_C with underbars
+	WithUnderbars_C=$(echo "$UserSpectrumString_C" | sed -e 's^ ^_^g')
+
+	#replace spaces in $UserSpectrumString_D with underbars
+	WithUnderbars_D=$(echo "$UserSpectrumString_D" | sed -e 's^ ^_^g')
+			
+	#the spectrum is the string 7th from the right after UserSpectrumString_C and UserSpectrumString_D have spaces replaced 
+	Spectrum=$(echo "$UserSpectrumString" | sed -e "s^{$UserSpectrumString_C}^$WithUnderbars_C^g")
+	Spectrum=$(echo "$Spectrum" |	sed -e "s^{$UserSpectrumString_D}^$WithUnderbars_D^g" | rev | cut -d' ' -f 7 | rev) 
+			
+	#The user is the string first from the right
+	NMRUser=$(echo "$UserSpectrumString" | rev | cut -d' ' -f 1 | rev | tr -d '{}')
+
+}
+
+##main body of program
+
+#Store current day
+CurrentDay=$(date +'%m/%d/%Y')
+
+#Only proceed if input file is provided
+
+if [[ "${1-}" != "" && -f "${1-}" ]]; then
+    echo "Input file is $1."
+else
+    Show_Usage
+    exit 1
+fi
+
+#Parse the top lines of the input file
+parse_input $1
+
+#Loop through all the instruments in the input file and check IconDriverDebug and Inmracct.brief on each one
+while IFS= read -r -u10 Instrument ; do
+
+#Get paths and other variables from $Input
+
+RemoteUser=$(grep -w "$Instrument" <<< "$Input" | cut -f 2 ) # Remote user you will be SSHing to instrument computer as
+DebugPath=$(grep -w "$Instrument" <<< "$Input" | cut -f 3 ) #Remote path containing IconDriverDebug files
+INMRPath=$(grep -w "$Instrument" <<< "$Input" | cut -f 4 ) #Remote path containing Inmracct files
+#Exit if there aren't 4 entries in the Instrument line in $Input
+[[ -z "$INMRPath" ]] && { echo "INMRPath is empty" ; exit 1; }
+
+#Copy and read the Inmracct file, noting if there have been spectrum failures
+read_Inmracct 
+
+#Copy over the most recent IconDriverDebug file
+copy_IconDriverDebug 
+
+if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #only preceed if the IconDriverDebug file has been updated
+	
+	#Update the IconDriverDebug.full file
+	update_IconDriverDebugFull
+
+	#Get new debug errors since last time script was run
+	get_newdebugerrors
+
+  	#Go through all the known errors in ErrorStringArray and determine the appropriate email text and email settings from the error_table file
+  	if [[ $NewDebugErrors != "" ]]; then
+    	echo "$NewDebugErrors" |
+  		while IFS= read -r error ; do
+    		while IFS= read -r error_string ; do
+      			if (echo "$error" | grep -q "$error_string") ; then
+					EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
+					UserSend=$(grep -w "$error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
+					ManagerSend=$(grep -w "$error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
+      			fi
+    		done < <(echo "${ErrorStringArray}")
+		
+			#get the user and the spectrum corresponding to error 
+			get_user_spectrum	#function above
+
+    		UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
+
+
+    		#Send an email to the user, if specified in error_table and the debug file hasn't just been created
+    		if [[ "$NMRUser" != "carousel_mover" && "$UserSend" == "y" && "$Debug_New" == "n" && "$EmailFlag" == "y" ]]; then
+    			sleep 0.1 #I just put this here so the code runs if I comment the next line
+			 	Send_Email "$UserEmail" "emailtxt_template" ""
+				#also send an email to the NMR manager if $ManagerSend is 'y'				
+				Send_Email "$ManagerEmail" "emailtxt_manager_a" "$SubjectAdd"
+
+     		#Send an email just to the NMR manager if specified in error_table and the debug file hasn't just been created
+    		elif [[ "$NMRUser" != "carousel_mover" && "$ManagerSend" == "y" && "$Debug_New" == "n" && "$UserSend" == "n"  && "$EmailFlag" == "y" ]]; then
+    			sleep 0.1 #I just put this here so the code runs if I comment the next line
+				Send_Email "$ManagerEmail" "emailtxt_manager_b" "$SubjectAdd"
+    		fi
+  			
+			#Make an entry in debugerrors.log
+  			echo "$CurrentDay spectrum: $Spectrum user: $NMRUser $SubjectAdd" >> "$LogPath/debugerrors.$Instrument.log" 
+  			echo "$error" >> "$LogPath/debugerrors.$Instrument.log"
+    
+  		done 
+
+	else
+		if [[ $SubjectAdd != ""  && "$EmailFlag" == "y" ]]; then	#If the sample failed but there's no entry in in the error table for it
+			Send_Email "$ManagerEmail" "emailtxt_failure" "$SubjectAdd"
+  			echo "$CurrentDay $SubjectAdd" >> "$LogPath/debugerrors.$Instrument.log"
+		fi
+	fi
+fi
+
+if [[ "$TrimFlag" == 'y' ]]; then
+	TrimIconDriverDebug
+fi
+
+done 10< <(echo "${Instrument_Array}")
