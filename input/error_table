@@ -1,0 +1,22 @@
+Error phrase                           email text           mail user?    mail manager?
+
+Shim Failed                            emailtxt_shimfailure      y              y
+PrepareLock - lock is                  emailtxt_preparelock      y              y
+Sample is not hovering..               emailtxt_hovering         y              y
+Lock failed after multiple             emailtxt_lockfailure      y              y
+Transfer: .*:Sample Missing Error      emailtxt_nosample         y              y
+Sample Changer .* Error: No sample     emailtxt_nosample         y              y
+Error: Empty answer from BacsCommand   emailtxt_genfailure       y              y
+Could not move the sample chain        emailtxt_genfailure       y              y
+atm \"ATM Failed                       emailtxt_atmfailure       y              y
+run_paused 1                           emailtxt_genfailure       n              y
+run_paused 2                           emailtxt_genfailure       n              y
+Missing empty position                 emailtxt_genfailure       n              y
+Sample is not in the cassette          emailtxt_genfailure       n              y
+More than one sample was detected in   emailtxt_genfailure       n              y
+The sample is not hovering anymore     emailtxt_genfailure       n              y
+segmentation violation), Shim failed   emailtxt_genfailure       y              y
+Transfer: Changer has been busy for    emailtxt_genfailure       n              y
+failed. .* sample did not fall down    emailtxt_genfailure       n              y
+Lock anomaly during                    emailtxt_lockanomaly      y              y
+Run Stopped on Error                   emailtxt_genfailure       n              y
