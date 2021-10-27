@@ -1,0 +1,8 @@
+ScriptsPath             /home/nmruser/scripts           #Location of script and the files it uses (error_matrix, emailtxt/emailtxt_*) on local machine
+SendmailPath            /usr/sbin                       #Location of the sendmail application on local machine
+ManagerEmail            nmrmgr@university.edu           #Email address of the NMR facility manager
+
+Instrument     RemoteUser      DebugPath                               INMRPath
+AV400          nmr1            /opt/topspin2.1pl8/prog/curdir/nmr1     /opt/topspin2.1pl8/conf/instr/spect/inmrusers
+NEO400         nmr             /opt/topspin4.0.8/prog/curdir/nmr       /opt/topspin4.0.8/conf/instr/remote_spect/inmrusers
+
