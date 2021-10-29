@@ -110,7 +110,7 @@ IMPORTANT: When editing this file, do not use entries that contain spaces.
 
 #### error_table
 
-The error table lists various ICON-NMR errors and determines how iconcheck wtill respond to them. The first column contains bits of the 
+The error table lists various ICON-NMR errors and determines how iconcheck will respond to them. The first column contains bits of the 
 the error message as it appears in the IconDriverDebug file. (Note that in some cases special characters need to be escaped, such as `\"` 
 and wildcards can be used with `.*`) The second column points to the relevent email text that will then be sent, and the final two columns 
 specify whether an email should be sent to the user, the NMR Manager, both, or neither. New entries can be added as new errors develop. 
@@ -135,6 +135,17 @@ The script can be run as follows:
 ```sh
 iconcheck [OPTIONS]... /path/to/iconcheck_input
 ```
+
+Options:
+
+-h, -?, --help                           Show help message.
+
+-i, --input                              Set input file (flag optional).
+
+-e, --email (default y)                  Set to 'n' to skip sending emails
+
+-t, --trim (default y)                   Set to 'n' to skip trimming IconDriverDebug.$Instrument.full
+
 
 To run this as a cron job, make an entry in your crontab like this:
 
