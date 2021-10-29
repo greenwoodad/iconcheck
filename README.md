@@ -15,10 +15,10 @@ I run this as a cron job every five minutes.
 ## Prerequisites
 
 This script requires a linux operating system with rsync. I've tested it in CentOS 6.8, 7.5 and x on the 
-local side and CentOS 7.5, CentOS 5.1, and RHEL7.3 on the remote side. I have only tested this with 
+local side and CentOS 7.5, CentOS 5.1 on the remote side. I have only tested this with 
 ICON-NMR run out of Topspin 2.1 and 4.0.8. 
 
-The email feature requires that the command * sendmail * is working on the machine running the script.
+The email feature requires that the command *sendmail* is working on the machine running the script.
 
 ## Installing
 
