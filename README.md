@@ -10,7 +10,7 @@ is meant to be customized by the user as new instrument-specific bugs inevitably
 This program requires that the local and remote computers have password-less SSH between them
 enabled via private rsa keys.
 
-I run this as a cron job every five minutes.
+I suggest running this as a cron job every five minutes or so.
 
 ## Prerequisites
 
