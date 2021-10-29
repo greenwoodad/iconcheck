@@ -267,6 +267,9 @@ fi
 #Parse the top lines of the input file
 parse_input $1
 
+#Make the LogPath if it doesn't exist
+mkdir -p "$LogPath"
+
 #Loop through all the instruments in the input file and check IconDriverDebug and Inmracct.brief on each one
 while IFS= read -r -u10 Instrument ; do
 
