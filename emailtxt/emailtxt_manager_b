@@ -1,0 +1,9 @@
+'Dear NMR Manager:
+    
+An experiment submitted by user '$NMRUser' on the '$Instrument', '$Spectrum', returned the error: '$error'
+
+No email has been sent to the user.
+      
+       --The NMR Facility'
+
+

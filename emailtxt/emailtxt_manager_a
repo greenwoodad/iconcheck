@@ -1,0 +1,19 @@
+'Dear NMR Manager:
+    
+An experiment submitted by user '$NMRUser' on the '$Instrument', '$Spectrum', returned the error: '$error'
+      
+The following message was sent to the email address: '$UserEmail'
+
+
+
+Dear user: '$NMRUser',
+      
+Your experiment on the '$Instrument', '$Spectrum', '$EmailText'
+      
+Error text: '$error'
+
+Sent to: '$UserEmail'
+
+       --The NMR Facility'
+
+
