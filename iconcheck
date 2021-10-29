@@ -255,6 +255,9 @@ function get_user_spectrum () {
 #Store current day
 CurrentDay=$(date +'%m/%d/%Y')
 
+#Parse the options flags
+parse_flags "$@" #function above
+
 #Only proceed if input file is provided
 
 if [[ "${1-}" != "" && -f "${1-}" ]]; then
