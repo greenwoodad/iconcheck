@@ -268,7 +268,7 @@ else
 fi
 
 #Parse the top lines of the input file
-parse_input $1
+parse_input $Input
 
 #Make the LogPath if it doesn't exist
 mkdir -p "$LogPath"
