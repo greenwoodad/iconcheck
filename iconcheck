@@ -19,7 +19,7 @@ set -u
 
 ##default parameter/flag settings -- change these if you wish
 
-EmailFlag="y"					#Set to 'n' to refrain from sending emails when errors are detected
+EmailFlag="y"   #Set to 'n' to refrain from sending emails when errors are detected
 TrimFlag="y" 	#Set to 'n' to let IconDriverDebug.$Instrument.full grow uncontrollably-- it may get very big
 
 ##functions
@@ -224,10 +224,10 @@ function get_newdebugerrors () {
 function get_user_spectrum () {
 
 	#find a line that contains the user and the spectrum name, replace & with "and," square brackets with curved brackets, and ^ with `
-   UserSpectrumString=$(tac "$DebugFileFull" | grep -A 99999 "$error" | grep -m1 -o "Auto_AcqIP .as.fm .*")
+	UserSpectrumString=$(tac "$DebugFileFull" | grep -A 99999 "$error" | grep -m1 -o "Auto_AcqIP .as.fm .*")
 	UserSpectrumString=$(echo "$UserSpectrumString" | sed 's^\&^and^g' | sed 's^\[^(^g'| sed 's^\]^)^g' | sed 's@\^@`@g') 
 	#find everything enclosed in outermost curly brackets
-   UserSpectrumString_B=$(echo "$UserSpectrumString" | grep -o '{.*' | rev | grep -o '}.*' | rev)	
+	UserSpectrumString_B=$(echo "$UserSpectrumString" | grep -o '{.*' | rev | grep -o '}.*' | rev)	
 
 	#find final string enclosed by curly brackets
 	UserSpectrumString_C=$(echo "$UserSpectrumString_B" | rev | cut -d "{" -f1 | rev | cut -d "}" -f1) 
@@ -304,8 +304,8 @@ if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #on
       			fi
     		done < <(echo "${ErrorStringArray}")
 		
-			#get the user and the spectrum corresponding to error 
-			get_user_spectrum	#function above
+		#get the user and the spectrum corresponding to error 
+		get_user_spectrum	#function above
 
     		UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
 
