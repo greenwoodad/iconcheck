@@ -76,11 +76,16 @@ The SSHAliases here should be the same SSHAliases you enter in the input file.
 
 You should now be able to SSH to the remote workstations without entering a password by typing: 
 
+```sh
 ssh remote_username@SSHAlias
+```
 
 in addition to 
+
 ssh remote_username@IPAddress 
+
 and
+
 ssh remote_username@DomainName 
 
 The first time you do this, you will need to type "yes" to the question "Are you sure you want
@@ -121,7 +126,9 @@ iconcheck [OPTIONS]... /path/to/iconcheck_input
 
 To run this as a cron job, make an entry in your crontab like this:
 
+```sh
 */5 * * * * /path/to/iconcheck "/path/to/input/iconcheck_input"
+```
 
 ## Contributing
 Pull requests are welcome. 
