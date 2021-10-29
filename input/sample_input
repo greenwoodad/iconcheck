@@ -1,4 +1,4 @@
-ScriptsPath             /home/nmruser/scripts           #Location of script and the files it uses (error_matrix, emailtxt/emailtxt_*) on local machine
+ScriptsPath             /home/nmruser/iconcheck         #Location of script and the files it uses (input/error_table, emailtxt/emailtxt_* etc) on local machine
 SendmailPath            /usr/sbin                       #Location of the sendmail application on local machine
 ManagerEmail            nmrmgr@university.edu           #Email address of the NMR facility manager
 
