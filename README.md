@@ -60,15 +60,18 @@ cat ~/.ssh/id_rsa.pub | ssh remote_username@remote_ip_address "mkdir -p ~/.ssh &
 
 3) Last, add SSH aliases to your hosts file. In /etc/hosts, add entries:
 
+```sh
 IPAddress DomainName SSHAlias
+```
 
 for each remote workstation.
 
 for example:
+```sh
 198.51.100.50     dmx500.chem.university.edu       DMX500
 198.51.100.54     av400.chem.university.edu        AV400
 198.51.100.59     neo400.chem.university.edu       NEO400
-
+```
 The SSHAliases here should be the same SSHAliases you enter in the input file. 
 
 You should now be able to SSH to the remote workstations without entering a password by typing: 
@@ -90,13 +93,13 @@ automatically without manual password entry.
 
 In the main input file (iconcheck_input) there are a number of parameters and paths to set:
 
-*'ScriptsPath': Location of the main script and the input, emailtxt, and log folders on local machine.
-*'SendmailPath': Location of the sendmail application on local machine, probably /usr/sbin.
-*'ManagerEmail': Email address of the NMR facility manager.
-*'Instrument': Alias for password-less SSH to this instrument computer.
-*'RemoteUser': User on the remote computer that you can SSH as.
-*'DebugPath': Folder containing IconDriverDebug files on remote computer (probably something like /opt/topspin_version/prog/curdir/nmr1)
-*'INMRPath': Folder containing Inmracct.brief file on remote computer (probably something like /opt/topspin_version/conf/instr/spect/inmrusers)
+* `ScriptsPath`: Location of the main script and the input, emailtxt, and log folders on local machine.
+* `SendmailPath`: Location of the sendmail application on local machine, probably /usr/sbin.
+* `ManagerEmail`: Email address of the NMR facility manager.
+* `Instrument`: Alias for password-less SSH to this instrument computer.
+* `RemoteUser`: User on the remote computer that you can SSH as.
+* `DebugPath`: Folder containing IconDriverDebug files on remote computer (probably something like /opt/topspin_version/prog/curdir/nmr1)
+* `INMRPath`: Folder containing Inmracct.brief file on remote computer (probably something like /opt/topspin_version/conf/instr/spect/inmrusers)
 
 IMPORTANT: When editing this file, do not use entries that contain spaces. 
 
