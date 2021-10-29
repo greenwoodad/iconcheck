@@ -45,7 +45,7 @@ This will generate files ~/.ssh/id_rsa and ~/.ssh/id_rsa.pub
 
 Press enter at the prompt "Enter passphrase (empty for no passphrase):" to skip passphrase generation.
 
-2) Next, run this command for each remote workstation:
+2) Next, run this command (from the local machine) for each remote workstation:
 
 ```sh
 ssh-copy-id remote_username@remote_ip_address
