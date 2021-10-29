@@ -260,8 +260,8 @@ parse_flags "$@" #function above
 
 #Only proceed if input file is provided
 
-if [[ "${1-}" != "" && -f "${1-}" ]]; then
-    echo "Input file is $1."
+if [[ "${Input-}" != "" && -f "${Input-}" ]]; then
+    echo "Input file is $Input."
 else
     Show_Usage
     exit 1
