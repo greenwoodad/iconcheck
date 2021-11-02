@@ -304,9 +304,10 @@ if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #on
   		while IFS= read -r error ; do
     		while IFS= read -r error_string ; do
       			if (echo "$error" | grep -q "$error_string") ; then
-					EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
-					UserSend=$(grep -w "$error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
-					ManagerSend=$(grep -w "$error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
+					new_error_string=$(echo "$error_string" | sed 's^\\^\\\\\\^g') #escape slashes
+					EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
+					UserSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
+					ManagerSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
       			fi
     		done < <(echo "${ErrorStringArray}")
 		
