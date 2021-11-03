@@ -23,6 +23,11 @@ The email feature requires that the command *sendmail* is working on the machine
 ## Installing
 
 git clone https://github.com/greenwoodad/iconcheck
+or
+git clone https://(your github username)@github.com/greenwoodad/iconcheck.git
+
+followed by 
+chmod +x ./iconcheck/iconcheck
 
 ## Getting Started
 
