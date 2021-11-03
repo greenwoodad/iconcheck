@@ -21,14 +21,19 @@ ICON-NMR run out of Topspin 2.1 and 4.0.8.
 The email feature requires that the command *sendmail* is working on the machine running the script.
 
 ## Installing
-
+```sh
 git clone https://github.com/greenwoodad/iconcheck
-or
+```
+or 
+
+```sh
 git clone https://(your github username)@github.com/greenwoodad/iconcheck.git
+```
 
-followed by 
+followed by:
+```sh
 chmod +x ./iconcheck/iconcheck
-
+```
 ## Getting Started
 
 ### Setting up password-less ssh logins to instrument machines
@@ -86,12 +91,13 @@ ssh remote_username@SSHAlias
 ```
 
 in addition to 
-
+```sh
 ssh remote_username@IPAddress 
-
+```
 and
-
+```sh
 ssh remote_username@DomainName 
+```
 
 The first time you do this, you will need to type "yes" to the question "Are you sure you want
 to continue connecting (yes/no)?" however. After this, you will be able to run the script 
