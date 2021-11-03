@@ -2,11 +2,7 @@
 
 # iconcheck.sh
 #
-# Copyright 2021 Alex Greenwood
-#
-# This program is free software (talk to IP people about this)
-#
-# This program is distributed with NO WARRANTY (talk to IP people about this)
+# Copyright 2021 University of Cincinnati
 #
 # This program is meant to be run as a cron job on a linux server to monitor ICON-NMR sessions on multiple NMR instruments.
 # It copies IconDriverDebug and Inmracct files over from remote machines via SSH and checks them for new errors. If errors
