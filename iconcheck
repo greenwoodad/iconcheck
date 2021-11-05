@@ -309,7 +309,16 @@ if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #on
 		
 		#get the user and the spectrum corresponding to error 
 		get_user_spectrum	#function above
-
+		
+		if [[ -s "$InputPath/addressbook" ]]; then
+	                UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
+			if [[ "$UserEmail" == "" ]]; then
+				echo "No email address found for $NMRUser in $InputPath/addressbook"
+			fi
+                else
+			echo "Address book file does not exist! Please make one in $InputPath/addressbook"
+                fi
+        
     		UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
 
 
