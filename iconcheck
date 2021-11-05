@@ -181,10 +181,9 @@ function update_IconDriverDebugFull () {
   	sed -i '\^'"$LastLine"'^Q' "$DebugFileFull"
   	#copy the current debug file into the full debug file 
   	if grep -Fxq "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.$Instrument.full log is present in the current IconDebug
-		echo " "
-    	sed -n "\^$LastLine^,$ p" "$DebugFile" | tail -n+1 >> "$DebugFileFull" #put everything after the previous last line into IconDriverDebug.full
+    		sed -n "\^$LastLine^,$ p" "$DebugFile" | tail -n+1 >> "$DebugFileFull" #put everything after the previous last line into IconDriverDebug.full
   	else
-    	cat "$DebugFile" >> "$DebugFileFull" #the IconDriverDebug file has started over and needs to be appended in its entirety to IconDriverDebug.full
+    		cat "$DebugFile" >> "$DebugFileFull" #the IconDriverDebug file has started over and needs to be appended in its entirety to IconDriverDebug.full
   	fi
 
 }
@@ -324,14 +323,12 @@ if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #on
 
     		#Send an email to the user, if specified in error_table and the debug file hasn't just been created
     		if [[ "$NMRUser" != "carousel_mover" && "$UserSend" == "y" && "$Debug_New" == "n" && "$EmailFlag" == "y" ]]; then
-    			sleep 0.1 #I just put this here so the code runs if I comment the next line
 			 	Send_Email "$UserEmail" "emailtxt_template" ""
 				#also send an email to the NMR manager if $ManagerSend is 'y'				
 				Send_Email "$ManagerEmail" "emailtxt_manager_a" "$SubjectAdd"
 
      		#Send an email just to the NMR manager if specified in error_table and the debug file hasn't just been created
     		elif [[ "$NMRUser" != "carousel_mover" && "$ManagerSend" == "y" && "$Debug_New" == "n" && "$UserSend" == "n"  && "$EmailFlag" == "y" ]]; then
-    			sleep 0.1 #I just put this here so the code runs if I comment the next line
 				Send_Email "$ManagerEmail" "emailtxt_manager_b" "$SubjectAdd"
     		fi
   			
