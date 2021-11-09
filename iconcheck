@@ -174,7 +174,7 @@ function update_IconDriverDebugFull () {
 
 	#specify the final line of the full debug file with the text "Auto_AcqIP .as.fm .*" (which is unique)
 	#backslashes are escaped so that if a file with special characters (especially } or {) is generated the line can still be found
-	LastLine=$(grep "Auto_AcqIP .as.fm .*" "$DebugFileFull" |tail -n 1 | sed 's^\\^\x22\x27\\\\\x27\x22^g') 
+	LastLine=$(grep "Auto_AcqIP .as.*.fm .*" "$DebugFileFull" |tail -n 1 | sed 's^\\^\x22\x27\\\\\x27\x22^g') 
 	#next, escape square brackets and carrots for similar reasons
 	LastLine=$(echo "$LastLine" | sed 's^\[^\x22\x27\\\[\x27\x22^g' | sed 's^\]^\x22\x27\\\]\x27\x22^g' | sed 's@\^@\x22\x27\\\^\x27\x22@g') 
  	#remove everything afer LastLine from IconDriverDebug.$Instrument.full 
@@ -219,7 +219,7 @@ function get_newdebugerrors () {
 function get_user_spectrum () {
 
 	#find a line that contains the user and the spectrum name, replace & with "and," square brackets with curved brackets, and ^ with `
-	UserSpectrumString=$(tac "$DebugFileFull" | grep -A 99999 "$error" | grep -m1 -o "Auto_AcqIP .as.fm .*")
+	UserSpectrumString=$(tac "$DebugFileFull" | grep -A 99999 "$error" | grep -m1 -o "Auto_AcqIP .as.*.fm .*")
 	UserSpectrumString=$(echo "$UserSpectrumString" | sed 's^\&^and^g' | sed 's^\[^(^g'| sed 's^\]^)^g' | sed 's@\^@`@g') 
 	#find everything enclosed in outermost curly brackets
 	UserSpectrumString_B=$(echo "$UserSpectrumString" | grep -o '{.*' | rev | grep -o '}.*' | rev)	
