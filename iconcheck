@@ -54,10 +54,22 @@ while [[ ! -z "${1-}" ]] ; do
                 -e|--email)
                         shift
                         EmailFlag="$1"
+			if ! [[ "$EmailFlag" == 'y' || "$EmailFlag" == 'n' ]]; then
+				echo "Invalid email option."
+				echo ""
+				Show_Usage
+				exit 1
+			fi
                         ;;
                 -t|--trim)
                         shift
                         TrimFlag="$1"
+			if ! [[ "$TrimFlag" == 'y' || "$TrimFlag" == 'n' ]]; then
+				echo "Invalid trim option."
+				echo ""
+				Show_Usage
+				exit 1
+			fi
                         ;;
                 -*)
                         echo "Unknown option: \"$1\""
@@ -258,6 +270,8 @@ parse_flags "$@" #function above
 if [[ "${Input-}" != "" && -f "${Input-}" ]]; then
     echo "Input file is $Input."
 else
+    echo "No valid input file ("${Input-}" not provided or does not exist)."
+    echo ""
     Show_Usage
     exit 1
 fi
