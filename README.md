@@ -123,11 +123,13 @@ IMPORTANT: When editing this file, do not use entries that contain spaces.
 
 The error table lists various ICON-NMR errors and determines how iconcheck will respond to them. The first column contains bits of the 
 the error message as it appears in the IconDriverDebug file. (Note that in some cases special characters need to be escaped, such as `\"` 
-and wildcards can be used with `.*`) The second column points to the relevent email text that will then be sent, and the final two columns 
-specify whether an email should be sent to the user, the NMR Manager, both, or neither. New entries can be added as new errors develop. 
+to escape a double quote. Wildcards can be used with `.*` as well.) The second column points to the relevent email text that will then 
+be sent, and the final two columns specify whether an email should be sent to the user, the NMR Manager, both, or neither. New entries 
+can be added as new errors develop.
+
 If you want to add a new entry, you should try to identify a unique string that reliably occurs in IconDriverDebug for this error (and 
 not in other contexts) exactly once. Note that when adding a new error to the table, the script will submit emails corresponding to recent
-instances of the error the next time it runs. To avoid this, you may choose to set `mail manager?` to `n` temporarily until the script
+instances of the error the next time it runs. To avoid this, you may choose to set `mail user?` to `n` temporarily until the script
 adds the recent instances to the debugerrors log. 
 
 IMPORTANT: When editing this file, make sure there are always at least two spaces separating entries for proper parsing of the input file.
