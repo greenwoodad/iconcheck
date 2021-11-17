@@ -157,7 +157,7 @@ Options:
 
 -e, --email (default y)                  Set to 'n' to skip sending emails
 
--t, --trim (default y)                   Set to 'n' to skip trimming IconDriverDebug.$Instrument.full
+-t, --trim (default y)                   Set to 'n' to skip trimming IconDriverDebug.Instrument.full
 
 
 To run this as a cron job, make an entry in your crontab like this:
