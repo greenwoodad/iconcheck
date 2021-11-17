@@ -14,9 +14,9 @@ I suggest running this as a cron job every five minutes or so.
 
 ## Prerequisites
 
-This script requires a linux operating system with rsync. I've tested it in CentOS 6.8, 7.5 and x on the 
-local side and CentOS 7.5, CentOS 5.1 on the remote side. I have only tested this with 
-ICON-NMR run out of Topspin 2.1 and 4.0.8. 
+This script requires a linux operating system with rsync. I've tested it in CentOS 6.8, 7.5 and Ubuntu 20
+on the local side and CentOS 7.5, CentOS 5.1 on the remote side. I have only tested this with ICON-NMR
+run out of Topspin 2.1 and 4.0.8. 
 
 The email feature requires that the command *sendmail* is working on the machine running the script.
 
