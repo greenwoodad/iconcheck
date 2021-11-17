@@ -109,13 +109,13 @@ automatically without manual password entry.
 
 In the main input file (iconcheck_input) there are a number of parameters and paths to set:
 
-* `ScriptsPath`: Location of the main script and the input, emailtxt, and log folders on local machine.
+* `ScriptsPath`: Full path to the location of the main script and the input, emailtxt, and log folders on local machine. Use full path!
 * `SendmailPath`: Location of the sendmail application on local machine, probably /usr/sbin.
 * `ManagerEmail`: Email address of the NMR facility manager.
 * `SSHAlias`: Alias for password-less SSH to this instrument computer.
 * `RemoteUser`: User on the remote computer that you can SSH as.
-* `DebugPath`: Folder containing IconDriverDebug files on remote computer (probably something like /opt/topspin_version/prog/curdir/nmr1)
-* `INMRPath`: Folder containing Inmracct.brief file on remote computer (probably something like /opt/topspin_version/conf/instr/spect/inmrusers)
+* `DebugPath`: Folder containing IconDriverDebug files on remote computer (probably something like /opt/topspin_version/prog/curdir/nmr1). Use full path!
+* `INMRPath`: Folder containing Inmracct.brief file on remote computer (probably something like /opt/topspin_version/conf/instr/spect/inmrusers). Use full path!
 
 IMPORTANT: When editing this file, do not use entries that contain spaces. 
 
