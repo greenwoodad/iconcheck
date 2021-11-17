@@ -205,6 +205,11 @@ function get_newdebugerrors () {
 
   	#Parse the error strings from the error table:
   	ErrorTableFile=$"$InputPath/error_table"
+	if ![[ -s "$ErrorTableFile" ]]; then
+		echo "Error table is not found at $ErrorTableFile!!! Exiting."
+		exit 1
+       fi
+	
 	ErrorTable=$( cat "$ErrorTableFile" | sed 's/   */\t/g' | sed 's:\t\t*:\t:g' )
   	ErrorStringArray=''
   	while IFS=$'\t' read -r column1 column2 column3 column4; do
