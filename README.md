@@ -119,6 +119,8 @@ In the main input file (iconcheck_input) there are a number of parameters and pa
 
 IMPORTANT: When editing this file, do not use entries that contain spaces. 
 
+Instruments in the instrument table can be commented out with a #.
+
 #### error_table
 
 The error table lists various ICON-NMR errors and determines how iconcheck will respond to them. The first column contains bits of the 
