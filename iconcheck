@@ -119,7 +119,7 @@ function parse_input () {
 	while IFS=$'\t' read -r column1 column2 column3 column4 column5; do
 		Instrument_Array="$Instrument_Array"$'\n'${column1}
 	done < <(echo "${Input}")
-	Instrument_Array=$(echo "${Instrument_Array}"| sed -e '1,/Instrument/d' | tail -n +1 | sed '/^#/d' | sed '/^$/d') # read list of instruments, skipping lines that start with #
+	Instrument_Array=$(echo "${Instrument_Array}"| sed -e '1,/SSHAlias/d' | tail -n +1 | sed '/^#/d' | sed '/^$/d') # read list of instruments, skipping lines that start with #
 	ManagerEmail=$(grep -w "ManagerEmail" <<< "$Input" | cut -f 2 )
 	ScriptsPath=$(grep -w "ScriptsPath" <<< "$Input" | cut -f 2 )
 	SendmailPath=$(grep -w "SendmailPath" <<< "$Input" | cut -f 2 )
