@@ -125,7 +125,7 @@ Instruments in the instrument table can be commented out with a #.
 
 The error table lists various ICON-NMR errors and determines how iconcheck will respond to them. The first column contains bits of the 
 the error message as it appears in the IconDriverDebug file. (Note that in some cases special characters need to be escaped, such as `\"` 
-to escape a double quote. Wildcards can be used with `.*` as well.) The second column points to the relevent email text that will then 
+to escape a double quote. Wildcards can be used with `.*` as well.) The second column points to the relevant email text that will then 
 be sent, and the final two columns specify whether an email should be sent to the user, the NMR Manager, both, or neither. New entries 
 can be added as new errors develop.
 
