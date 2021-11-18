@@ -189,7 +189,7 @@ function update_IconDriverDebugFull () {
 	LastLine=$(grep "Auto_AcqIP .as.*.fm .*" "$DebugFileFull" |tail -n 1 | sed 's^\\^\x22\x27\\\\\x27\x22^g') 
 	#next, escape square brackets and carrots for similar reasons
 	LastLine=$(echo "$LastLine" | sed 's^\[^\x22\x27\\\[\x27\x22^g' | sed 's^\]^\x22\x27\\\]\x27\x22^g' | sed 's@\^@\x22\x27\\\^\x27\x22@g') 
- 	#remove everything afer LastLine from IconDriverDebug.$Instrument.full 
+ 	#remove everything after LastLine from IconDriverDebug.$Instrument.full 
   	sed -i '\^'"$LastLine"'^Q' "$DebugFileFull"
   	#copy the current debug file into the full debug file 
   	if grep -Fxq "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.$Instrument.full log is present in the current IconDebug
