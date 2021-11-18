@@ -1,6 +1,6 @@
 # iconcheck
 
-iconcheck is a bash script for monitoring ICON-NMR sessions on mutiple NMR instruments
+iconcheck is a bash script for monitoring ICON-NMR sessions on multiple NMR instruments
 using [rsync](https://download.samba.org/pub/rsync/rsync.html). It copies IconDriverDebug 
 and Inmracct files over from remote machines via SSH and checks them for new errors. If 
 errors are found, it assembles them into log files and sends alert emails to the user and/or 
