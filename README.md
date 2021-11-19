@@ -153,13 +153,13 @@ iconcheck [OPTIONS]... /path/to/iconcheck_input
 
 Options:
 
--h, -?, --help                           Show help message.
+ `-h, -?, --help`                           Show help message.
 
--i, --input                              Set input file (flag optional).
+ `-i, --input`                              Set input file (flag optional).
 
--e, --email (default y)                  Set to 'n' to skip sending emails
+ `-e, --email (default y)`                  Set to 'n' to skip sending emails
 
--t, --trim (default y)                   Set to 'n' to skip trimming IconDriverDebug.Instrument.full
+ `-t, --trim (default y)`                   Set to 'n' to skip trimming IconDriverDebug.Instrument.full
 
 
 To run this as a cron job, make an entry in your crontab like this:
