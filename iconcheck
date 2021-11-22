@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# iconcheck.sh
+# iconcheck
 #
 # Copyright 2021 University of Cincinnati
 #
@@ -209,7 +209,7 @@ function get_newdebugerrors () {
 	if ! [[ -s "$ErrorTableFile" ]]; then
 		echo "Error table is not found at $ErrorTableFile!!! Exiting."
 		exit 1
-       fi
+        fi
 	
 	ErrorTable=$( cat "$ErrorTableFile" | sed 's/   */\t/g' | sed 's:\t\t*:\t:g' )
   	ErrorStringArray=''
@@ -319,10 +319,10 @@ if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #on
   		while IFS= read -r error ; do
     		while IFS= read -r error_string ; do
       			if (echo "$error" | grep -q "$error_string") ; then
-					new_error_string=$(echo "$error_string" | sed 's^\\^\\\\\\^g') #escape slashes
-					EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
-					UserSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
-					ManagerSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
+				new_error_string=$(echo "$error_string" | sed 's^\\^\\\\\\^g') #escape slashes
+				EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
+				UserSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
+				ManagerSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
       			fi
     		done < <(echo "${ErrorStringArray}")
 		
@@ -343,13 +343,13 @@ if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #on
 
     		#Send an email to the user, if specified in error_table and the debug file hasn't just been created
     		if [[ "$NMRUser" != "carousel_mover" && "$UserSend" == "y" && "$Debug_New" == "n" && "$EmailFlag" == "y" ]]; then
-			 	Send_Email "$UserEmail" "emailtxt_template" ""
-				#also send an email to the NMR manager if $ManagerSend is 'y'				
-				Send_Email "$ManagerEmail" "emailtxt_manager_a" "$SubjectAdd"
+			 Send_Email "$UserEmail" "emailtxt_template" ""
+			#also send an email to the NMR manager if $ManagerSend is 'y'				
+			Send_Email "$ManagerEmail" "emailtxt_manager_a" "$SubjectAdd"
 
      		#Send an email just to the NMR manager if specified in error_table and the debug file hasn't just been created
     		elif [[ "$NMRUser" != "carousel_mover" && "$ManagerSend" == "y" && "$Debug_New" == "n" && "$UserSend" == "n"  && "$EmailFlag" == "y" ]]; then
-				Send_Email "$ManagerEmail" "emailtxt_manager_b" "$SubjectAdd"
+			Send_Email "$ManagerEmail" "emailtxt_manager_b" "$SubjectAdd"
     		fi
   			
 			#Make an entry in debugerrors.log
