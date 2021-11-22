@@ -39,7 +39,7 @@ chmod +x ./iconcheck/iconcheck
 ### Setting up password-less ssh logins to instrument machines
 
 Because this script is intended to be run as a cron job, it is necessary to authorize the local
-machine to access the remote machine(s) with password-less ssh login using * ssh keys *. Tutorials
+machine to access the remote machine(s) with password-less ssh login using ssh keys. Tutorials
 are available here: 
 * [How To Set Up Passwordless SSH Login](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/)
 * [OpenSSH Config File Examples](https://www.cyberciti.biz/faq/create-ssh-config-file-on-linux-unix/)
