@@ -16,7 +16,7 @@ set -u
 ##default parameter/flag settings -- change these if you wish
 
 EmailFlag="y"   #Set to 'n' to refrain from sending emails when errors are detected
-TrimFlag="y" 	#Set to 'n' to let IconDriverDebug.$Instrument.full grow uncontrollably-- it may get very big
+TrimFlag="y" 	#Set to 'n' to let IconDriverDebug.Instrument.full grow uncontrollably-- it may get very big
 
 ##functions
 
