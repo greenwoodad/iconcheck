@@ -1,7 +1,8 @@
 # iconcheck
 
 iconcheck is a bash script for monitoring ICON-NMR sessions on multiple NMR instruments
-using [rsync](https://download.samba.org/pub/rsync/rsync.html). It copies IconDriverDebug 
+using [rsync](https://download.samba.org/pub/rsync/rsync.html). It serves as an alternative
+to the email feature in ICON-NMR which is rather limited. It copies the IconDriverDebug 
 and Inmracct files over from remote machines via SSH and checks them for new errors. If 
 errors are found, it assembles them into log files and sends alert emails to the user and/or 
 facility manager according to settings in the file input/error_table. The error_table file 
@@ -170,7 +171,7 @@ To run this as a cron job, make an entry in your crontab like this:
 ```
 
 ## Contributing
-Pull requests are welcome. 
+Pull requests and bug reports are welcome. 
 
 ## Authors
 
