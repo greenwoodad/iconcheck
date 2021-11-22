@@ -17,6 +17,7 @@ set -u
 
 EmailFlag="y"   #Set to 'n' to refrain from sending emails when errors are detected
 TrimFlag="y" 	#Set to 'n' to let IconDriverDebug.Instrument.full grow uncontrollably-- it may get very big
+SendmailPath='/usr/sbin'    #Location of SendMail-- probably /usr/sbin, maybe /usr/bin?
 
 ##functions
 
@@ -122,7 +123,6 @@ function parse_input () {
 	Instrument_Array=$(echo "${Instrument_Array}"| sed -e '1,/SSHAlias/d' | tail -n +1 | sed '/^#/d' | sed '/^$/d') # read list of instruments, skipping lines that start with #
 	ManagerEmail=$(grep -w "ManagerEmail" <<< "$Input" | cut -f 2 )
 	ScriptsPath=$(grep -w "ScriptsPath" <<< "$Input" | cut -f 2 )
-	SendmailPath=$(grep -w "SendmailPath" <<< "$Input" | cut -f 2 )
 
 	#Stop the script if these inputs aren't found in the input file
 	[[ -z "$ManagerEmail" ]] && { echo "ManagerEmail is empty" ; exit 1; }
@@ -195,6 +195,7 @@ function update_IconDriverDebugFull () {
   	if grep -Fxq "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.$Instrument.full log is present in the current IconDebug
     		sed -n "\^$LastLine^,$ p" "$DebugFile" | tail -n+1 >> "$DebugFileFull" #put everything after the previous last line into IconDriverDebug.full
   	else
+		echo "$LastLine" >> "$DebugFileFull" #put the LastLine back into the IconDriverDebug.full
     		cat "$DebugFile" >> "$DebugFileFull" #the IconDriverDebug file has started over and needs to be appended in its entirety to IconDriverDebug.full
   	fi
 
