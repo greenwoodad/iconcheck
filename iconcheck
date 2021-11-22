@@ -17,7 +17,7 @@ set -u
 
 EmailFlag="y"   #Set to 'n' to refrain from sending emails when errors are detected
 TrimFlag="y" 	#Set to 'n' to let IconDriverDebug.Instrument.full grow uncontrollably-- it may get very big
-SendmailPath='/usr/sbin'    #Location of SendMail-- probably /usr/sbin, maybe /usr/bin?
+SendmailPath='/usr/sbin'    #Location of SendMail binary-- probably /usr/sbin, maybe /usr/bin?
 
 ##functions
 
