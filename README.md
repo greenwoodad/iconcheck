@@ -110,7 +110,6 @@ automatically without manual password entry.
 In the main input file (iconcheck_input) there are a number of parameters and paths to set:
 
 * `ScriptsPath`: Full path to the location of the main script and the input, emailtxt, and log folders on local machine. Use full path!
-* `SendmailPath`: Location of the sendmail application on local machine, probably /usr/sbin.
 * `ManagerEmail`: Email address of the NMR facility manager.
 * `SSHAlias`: Alias for password-less SSH to this instrument computer.
 * `RemoteUser`: User on the remote computer that you can SSH as.
@@ -161,6 +160,8 @@ Options:
 
  `-t, --trim (default y)`                   Set to 'n' to skip trimming IconDriverDebug.Instrument.full
 
+
+The default values of these flags (as well as `SendmailPath`) can be set at the top of the main script.
 
 To run this as a cron job, make an entry in your crontab like this:
 
