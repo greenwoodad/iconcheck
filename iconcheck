@@ -139,7 +139,9 @@ function read_Inmracct () {
 	#copy accounting file over and check for recent sample failures, putting them in $Failures
 	rsync -avz -e ssh "$RemoteUser"@"$Instrument":"$INMRPath"/Inmracct.brief "$LogPath/Inmracct.brief.$Instrument"
 	Failures=$(grep -A 1 Failure "$LogPath/Inmracct.brief.$Instrument"  | tail -n 10) 
-
+	
+	SubjectAdd=""
+	
 	if test -f "$LogPath/recent_failures.$Instrument"; then #if failure file exists
 
 		FailureFileContents=$(cat "$LogPath/recent_failures.$Instrument") #specify previous recent failures file contents
@@ -148,12 +150,9 @@ function read_Inmracct () {
 		if [ "$FailureFileContents" != "$Failures" ]; then
 			SubjectAdd=" **Sample Failure**"
 			echo "$Failures" > "$LogPath/recent_failures.$Instrument"
-		else
-			SubjectAdd=""
 		fi
 	else #This is the condition when you first run the script -- there are errors but they are old
 		echo "$Failures" > "$LogPath/recent_failures.$Instrument"	
-		SubjectAdd=""
 		echo "New recent_failures.$Instrument file created, errors ignored"
 	fi
 
@@ -231,7 +230,6 @@ function get_newdebugerrors () {
 
 }
 
-
 #This function gets the username and spectrum name corresponding to an error in IconDriverDebug file
 
 function get_user_spectrum () {
@@ -305,64 +303,61 @@ read_Inmracct
 #Copy over the most recent IconDriverDebug file
 copy_IconDriverDebug 
 
-if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #only preceed if the IconDriverDebug file has been updated
-	
-	#Update the IconDriverDebug.full file
+if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #only update the IconDriverDebug.full file if necessary
 	update_IconDriverDebugFull
+fi
+	
+#Get new debug errors since last time script was run
+get_newdebugerrors
 
-	#Get new debug errors since last time script was run
-	get_newdebugerrors
-
-  	#Go through all the known errors in ErrorStringArray and determine the appropriate email text and email settings from the error_table file
-  	if [[ $NewDebugErrors != "" ]]; then
-    	echo "$NewDebugErrors" |
-  		while IFS= read -r error ; do
-    		while IFS= read -r error_string ; do
-      			if (echo "$error" | grep -q "$error_string") ; then
-				new_error_string=$(echo "$error_string" | sed 's^\\^\\\\\\^g') #escape slashes
-				EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
-				UserSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
-				ManagerSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
-      			fi
-    		done < <(echo "${ErrorStringArray}")
+#Go through all the known errors in ErrorStringArray and determine the appropriate email text and email settings from the error_table file
+if [[ $NewDebugErrors != "" ]]; then
+	echo "$NewDebugErrors" |
+	while IFS= read -r error ; do
+	while IFS= read -r error_string ; do
+		if (echo "$error" | grep -q "$error_string") ; then
+			new_error_string=$(echo "$error_string" | sed 's^\\^\\\\\\^g') #escape slashes
+			EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
+			UserSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
+			ManagerSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
+      		fi
+    	done < <(echo "${ErrorStringArray}")
 		
-		#get the user and the spectrum corresponding to error 
-		get_user_spectrum	#function above
+	#get the user and the spectrum corresponding to error 
+	get_user_spectrum	#function above
 		
-		if [[ -s "$InputPath/addressbook" ]]; then
-	                UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
-			if [[ "$UserEmail" == "" ]]; then
-				echo "No email address found for $NMRUser in $InputPath/addressbook"
-			fi
-                else
-			echo "Address book file does not exist! Please make one in $InputPath/addressbook"
-                fi
-        
-    		UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
-
-
-    		#Send an email to the user, if specified in error_table and the debug file hasn't just been created
-    		if [[ "$UserSend" == "y" && "$Debug_New" == "n" && "$EmailFlag" == "y" ]]; then
-			Send_Email "$UserEmail" "emailtxt_template" ""
-			#also send an email to the NMR manager if $ManagerSend is 'y'				
-			Send_Email "$ManagerEmail" "emailtxt_manager_a" "$SubjectAdd"
-
-     		#Send an email just to the NMR manager if specified in error_table and the debug file hasn't just been created
-    		elif [[ "$ManagerSend" == "y" && "$Debug_New" == "n" && "$UserSend" == "n"  && "$EmailFlag" == "y" ]]; then
-			Send_Email "$ManagerEmail" "emailtxt_manager_b" "$SubjectAdd"
-    		fi
-  			
-			#Make an entry in debugerrors.log
-  			echo "$CurrentDay spectrum: $Spectrum user: $NMRUser $SubjectAdd" >> "$LogPath/debugerrors.$Instrument.log" 
-  			echo "$error" >> "$LogPath/debugerrors.$Instrument.log"
-    
-  		done 
-
-	else
-		if [[ $SubjectAdd != ""  && "$EmailFlag" == "y" ]]; then	#If the sample failed but there's no entry in in the error table for it
-			Send_Email "$ManagerEmail" "emailtxt_failure" "$SubjectAdd"
-  			echo "$CurrentDay $SubjectAdd" >> "$LogPath/debugerrors.$Instrument.log"
+	if [[ -s "$InputPath/addressbook" ]]; then
+		UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
+		if [[ "$UserEmail" == "" ]]; then
+			echo "No email address found for $NMRUser in $InputPath/addressbook"
 		fi
+	else
+		echo "Address book file does not exist! Please make one in $InputPath/addressbook"
+	fi
+        
+	UserEmail=$(grep -w "$NMRUser" "$InputPath/addressbook" | cut -f2- -d" " | head -1 ) #user email address
+
+	#Send an email to the user, if specified in error_table and the debug file hasn't just been created
+	if [[ "$UserSend" == "y" && "$Debug_New" == "n" && "$EmailFlag" == "y" ]]; then
+		Send_Email "$UserEmail" "emailtxt_template" ""
+		#also send an email to the NMR manager if $ManagerSend is 'y'				
+		Send_Email "$ManagerEmail" "emailtxt_manager_a" "$SubjectAdd"
+
+     	#Send an email just to the NMR manager if specified in error_table and the debug file hasn't just been created
+    	elif [[ "$ManagerSend" == "y" && "$Debug_New" == "n" && "$UserSend" == "n"  && "$EmailFlag" == "y" ]]; then
+		Send_Email "$ManagerEmail" "emailtxt_manager_b" "$SubjectAdd"
+    	fi
+  			
+		#Make an entry in debugerrors.log
+  		echo "$CurrentDay spectrum: $Spectrum user: $NMRUser $SubjectAdd" >> "$LogPath/debugerrors.$Instrument.log" 
+  		echo "$error" >> "$LogPath/debugerrors.$Instrument.log"
+    
+  	done 
+
+else
+	if [[ $SubjectAdd != ""  && "$EmailFlag" == "y" ]]; then	#If the sample failed but there's no entry in in the error table for it
+		Send_Email "$ManagerEmail" "emailtxt_failure" "$SubjectAdd"
+ 		echo "$CurrentDay $SubjectAdd" >> "$LogPath/debugerrors.$Instrument.log"
 	fi
 fi
 
