@@ -213,7 +213,7 @@ function get_newdebugerrors () {
 	ErrorTable=$( cat "$ErrorTableFile" | sed 's/   */\t/g' | sed 's:\t\t*:\t:g' )
   	ErrorStringArray=''
   	while IFS=$'\t' read -r column1 column2 column3 column4; do
-    	ErrorStringArray="$ErrorStringArray"$'\n'${column1}
+    		ErrorStringArray="$ErrorStringArray"$'\n'${column1}
   	done < <(echo "${ErrorTable}")
 
   	ErrorStringArray=$(echo "${ErrorStringArray}"| tail -n +4 | sed '/^$/d')
