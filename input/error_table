@@ -2,7 +2,7 @@ Error phrase                           email text           mail user?    mail m
 
 Shim Failed                            emailtxt_shimfailure      y              y
 PrepareLock - lock is                  emailtxt_preparelock      y              y
-Sample is not hovering..               emailtxt_hovering         y              y
+Driver_Send.* not hovering..           emailtxt_hovering         y              y
 Lock failed after multiple             emailtxt_lockfailure      y              y
 Transfer: .*:Sample Missing Error      emailtxt_nosample         y              y
 Sample Changer .* Error: No sample     emailtxt_nosample         y              y
