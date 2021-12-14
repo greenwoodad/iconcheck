@@ -138,7 +138,7 @@ function read_Inmracct () {
 
 	#copy accounting file over and check for recent sample failures, putting them in $Failures
 	rsync -avz -e ssh "$RemoteUser"@"$Instrument":"$INMRPath"/Inmracct.brief "$LogPath/Inmracct.brief.$Instrument"
-	Failures=$(grep -A 1 Failure "$LogPath/Inmracct.brief.$Instrument"  | tail -n 10) 
+	Failures=$(grep -A 1 -- 'Failure' "$LogPath/Inmracct.brief.$Instrument"  | tail -n 10) 
 	
 	SubjectAdd=""
 	
@@ -191,7 +191,7 @@ function update_IconDriverDebugFull () {
  	#remove everything after LastLine from IconDriverDebug.Instrument.full 
   	sed -i '\^'"$LastLine"'^Q' "$DebugFileFull"
   	#copy the current debug file into the full debug file 
-  	if grep -Fxq "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.Instrument.full log is present in the current IconDebug
+  	if grep -Fxq -- "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.Instrument.full log is present in the current IconDebug
     		sed -n "\^$LastLine^,$ p" "$DebugFile" | tail -n+1 >> "$DebugFileFull" #put everything after the previous last line into IconDriverDebug.full
   	else
 		echo "$LastLine" >> "$DebugFileFull" #put the LastLine back into the IconDriverDebug.full
@@ -221,7 +221,7 @@ function get_newdebugerrors () {
   	#find all relatively recent instances of errors in IconDriverDebug.$Instrument.full and put them in recent_debug_errors
   	RecentDebugErrors=''
   	while IFS= read -r error_string ; do
-  		RecentDebugErrors="$RecentDebugErrors"$'\n'$(grep "$error_string" "$LogPath/IconDriverDebug.$Instrument.full" | tail -n 5)
+  		RecentDebugErrors="$RecentDebugErrors"$'\n'$(grep -- "$error_string" "$LogPath/IconDriverDebug.$Instrument.full" | tail -n 5)
   	done < <(echo "${ErrorStringArray}")
       
   	RecentDebugErrors=$(echo "$RecentDebugErrors" | perl -ne 'print if ! $x{$_}++') #removes nonconsecutive duplicate lines, saving first instance (in case multiple errors are present on the same line)
@@ -235,7 +235,7 @@ function get_newdebugerrors () {
 function get_user_spectrum () {
 
 	#find a line that contains the user and the spectrum name, replace & with "and," square brackets with curved brackets, and ^ with `
-	UserSpectrumString=$(tac "$DebugFileFull" | grep -A 99999 "$error" | grep -m1 -o "Auto_AcqIP .as.*.fm .*")
+	UserSpectrumString=$(tac "$DebugFileFull" | grep -A 99999 -- "$error" | grep -m1 -o "Auto_AcqIP .as.*.fm .*")
 	UserSpectrumString=$(echo "$UserSpectrumString" | sed 's^\&^and^g' | sed 's^\[^(^g'| sed 's^\]^)^g' | sed 's@\^@`@g') 
 	#find everything enclosed in outermost curly brackets
 	UserSpectrumString_B=$(echo "$UserSpectrumString" | grep -o '{.*' | rev | grep -o '}.*' | rev)	
@@ -291,9 +291,9 @@ while IFS= read -r -u10 Instrument ; do
 
 #Get paths and other variables from $Input
 
-RemoteUser=$(grep -w "$Instrument" <<< "$Input" | cut -f 2 ) # Remote user you will be SSHing to instrument computer as
-DebugPath=$(grep -w "$Instrument" <<< "$Input" | cut -f 3 ) #Remote path containing IconDriverDebug files
-INMRPath=$(grep -w "$Instrument" <<< "$Input" | cut -f 4 ) #Remote path containing Inmracct files
+RemoteUser=$(grep -w -- "$Instrument" <<< "$Input" | cut -f 2 ) # Remote user you will be SSHing to instrument computer as
+DebugPath=$(grep -w -- "$Instrument" <<< "$Input" | cut -f 3 ) #Remote path containing IconDriverDebug files
+INMRPath=$(grep -w -- "$Instrument" <<< "$Input" | cut -f 4 ) #Remote path containing Inmracct files
 #Exit if there aren't 4 entries in the Instrument line in $Input
 [[ -z "$INMRPath" ]] && { echo "INMRPath is empty" ; exit 1; }
 
@@ -315,11 +315,11 @@ if [[ $NewDebugErrors != "" ]]; then
 	echo "$NewDebugErrors" |
 	while IFS= read -r error ; do
 	while IFS= read -r error_string ; do
-		if (echo "$error" | grep -q "$error_string") ; then
+		if (echo "$error" | grep -q -- "$error_string") ; then
 			new_error_string=$(echo "$error_string" | sed 's^\\^\\\\\\^g') #escape slashes
-			EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev))
-			UserSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev)
-			ManagerSend=$(grep -w "$new_error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev)
+			EmailText=$(cat "$ScriptsPath"/emailtxt/$(grep -w -- "$new_error_string" <<< "$ErrorTable" | rev | cut -f 3 | rev | head -n 1))
+			UserSend=$(grep -w -- "$new_error_string" <<< "$ErrorTable" | rev | cut -f 2 | rev | head -n 1)
+			ManagerSend=$(grep -w -- "$new_error_string" <<< "$ErrorTable" | rev | cut -f 1 | rev | head -n 1)
       		fi
     	done < <(echo "${ErrorStringArray}")
 		
