@@ -7,7 +7,7 @@ Lock failed after multiple             emailtxt_lockfailure      y              
 Transfer: .*:Sample Missing Error      emailtxt_nosample         y              y
 Sample Changer .* Error: No sample     emailtxt_nosample         y              y
 Error: Empty answer from BacsCommand   emailtxt_genfailure       y              y
-Could not move the sample chain        emailtxt_genfailure       y              y
+Transfer .*not move the sample chain   emailtxt_genfailure       y              y
 atm \"ATM Failed                       emailtxt_atmfailure       y              y
 run_paused 1                           emailtxt_genfailure       n              y
 run_paused 2                           emailtxt_genfailure       n              y
