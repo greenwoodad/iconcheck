@@ -1,22 +1,24 @@
-Error phrase                           email text           mail user?    mail manager?
+Error phrase                          					 email text           	mail user?    mail manager?
 
-Shim Failed                            emailtxt_shimfailure      y              y
-PrepareLock - lock is                  emailtxt_preparelock      y              y
-Driver_Send.* not hovering..           emailtxt_hovering         y              y
-Lock failed after multiple             emailtxt_lockfailure      y              y
-Transfer: .*:Sample Missing Error      emailtxt_nosample         y              y
-Sample Changer .* Error: No sample     emailtxt_nosample         y              y
-Error: Empty answer from BacsCommand   emailtxt_genfailure       y              y
-Transfer .*not move the sample chain   emailtxt_genfailure       y              y
-atm \"ATM Failed                       emailtxt_atmfailure       y              y
-run_paused 1                           emailtxt_genfailure       n              y
-run_paused 2                           emailtxt_genfailure       n              y
-Missing empty position                 emailtxt_genfailure       n              y
-Sample is not in the cassette          emailtxt_genfailure       n              y
-More than one sample was detected in   emailtxt_genfailure       n              y
-The sample is not hovering anymore     emailtxt_genfailure       n              y
-segmentation violation), Shim failed   emailtxt_genfailure       y              y
-Transfer: Changer has been busy for    emailtxt_genfailure       n              y
-failed. .* sample did not fall down    emailtxt_genfailure       n              y
-Lock anomaly during                    emailtxt_lockanomaly      y              y
-Run Stopped on Error                   emailtxt_genfailure       n              y
+Driver_Send.*Shim Failed                            emailtxt_shimfailure      y              y
+Driver_Send.*PrepareLock - lock is                  emailtxt_preparelock      y              y
+Driver_Send.* not hovering..           		    emailtxt_hovering         y              y
+Driver_Send.*Lock failed after multiple             emailtxt_lockfailure      y              y
+Driver_Send.*No sample     	       		    emailtxt_nosample         y              y
+Driver_Send.*Error: Empty answer from BacsCommand   emailtxt_genfailure       y              y
+Driver_Send.*Transfer .*not move the sample chain   emailtxt_genfailure       y              y
+Driver_Send.*atm \"ATM Failed                       emailtxt_atmfailure       y              y
+run_paused 1                           		    emailtxt_genfailure       n              y
+run_paused 2                           		    emailtxt_genfailure       n              y
+run_paused 3                           		    emailtxt_genfailure       n              y
+Driver_Send.*Missing empty position                 emailtxt_genfailure       n              y
+Driver_Send.*not in the cassette       		    emailtxt_genfailure       n              y
+Driver_Send.*More than one sample was detected in   emailtxt_genfailure       n              y
+Driver_Send.*The sample is not hovering anymore     emailtxt_genfailure       n              y
+Driver_Send.*segmentation violation), Shim failed   emailtxt_genfailure       y              y
+Driver_Send.*Transfer: Changer has been busy for    emailtxt_genfailure       n              y
+Driver_Send.*failed. .* sample did not fall down    emailtxt_genfailure       n              y
+Driver_Send.*Ez_StatusIconDone.*Lock anomaly        emailtxt_lockanomaly      n              y
+Driver_Send.*Run Stopped on Error                   emailtxt_genfailure       n              y
+Driver_Send.*NMR Data Already exist                 emailtxt_dataexist        y              y
+
