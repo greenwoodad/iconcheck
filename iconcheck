@@ -182,21 +182,27 @@ function copy_IconDriverDebug () {
 
 #This function updates the IconDriverDebug.full file
 function update_IconDriverDebugFull () {
-
 	#specify the final line of the full debug file with the text "Auto_AcqIP .as.fm .*" (which is unique)
 	#backslashes are escaped so that if a file with special characters (especially } or {) is generated the line can still be found
-	LastLine=$(grep "Auto_AcqIP .as.*.fm .*" "$DebugFileFull" |tail -n 1 | sed 's^\\^\x22\x27\\\\\x27\x22^g') 
-	#next, escape square brackets and carrots for similar reasons
-	LastLine=$(echo "$LastLine" | sed 's^\[^\x22\x27\\\[\x27\x22^g' | sed 's^\]^\x22\x27\\\]\x27\x22^g' | sed 's@\^@\x22\x27\\\^\x27\x22@g') 
- 	#remove everything after LastLine from IconDriverDebug.Instrument.full 
-  	sed -i '\^'"$LastLine"'^Q' "$DebugFileFull"
-  	#copy the current debug file into the full debug file 
-  	if grep -Fxq -- "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.Instrument.full log is present in the current IconDebug
-    		sed -n "\^$LastLine^,$ p" "$DebugFile" | tail -n+1 >> "$DebugFileFull" #put everything after the previous last line into IconDriverDebug.full
-  	else
-		echo "$LastLine" >> "$DebugFileFull" #put the LastLine back into the IconDriverDebug.full
-    		cat "$DebugFile" >> "$DebugFileFull" #the IconDriverDebug file has started over and needs to be appended in its entirety to IconDriverDebug.full
-  	fi
+	if grep -q "Auto_AcqIP .as.*.fm .*" "$DebugFileFull"; then
+		LastLine=$(grep "Auto_AcqIP .as.*.fm .*" "$DebugFileFull")
+             	LastLine=$(echo "$LastLine" |tail -n 1 | sed 's^\\^\x22\x27\\\\\x27\x22^g')
+                #next, escape square brackets and carrots for similar reasons
+                LastLine=$(echo "$LastLine" | sed 's^\[^\x22\x27\\\[\x27\x22^g' | sed 's^\]^\x22\x27\\\]\x27\x22^g' | sed 's@\^@\x22\x27\\\^\x27\x22@g') 
+                #remove everything after LastLine from IconDriverDebug.Instrument.full
+                sed -i '\^'"$LastLine"'^Q' "$DebugFileFull"
+                #copy the current debug file into the full debug file
+
+                if grep -Fxq -- "$LastLine" "$DebugFile"; then #If the end of the full IconDebug.Instrument.full log is present in the current IconDebug
+                        sed -n "\^$LastLine^,$ p" "$DebugFile" | tail -n+1 >> "$DebugFileFull" #put everything after the previous last line into IconDriverDebug.full
+                else
+                        echo "$LastLine" >> "$DebugFileFull" #put the LastLine back into the IconDriverDebug.full
+                        cat "$DebugFile" >> "$DebugFileFull" #the IconDriverDebug file has started over and needs to be appended in its entirety to IconDriverDebug.full
+                fi
+	else
+                cat "$DebugFile" > "$DebugFileFull" #DebugFileFull was generated without any spectra so we need to replace it
+		echo 'c'
+	fi
 
 }
 
@@ -299,10 +305,8 @@ INMRPath=$(grep -w -- "$Instrument" <<< "$Input" | cut -f 4 ) #Remote path conta
 
 #Copy and read the Inmracct file, noting if there have been spectrum failures
 read_Inmracct 
-
 #Copy over the most recent IconDriverDebug file
 copy_IconDriverDebug 
-
 if ! [[ $(tail -n 1 "$DebugFileFull") == $(tail -n 1 "$DebugFile") ]]; then  #only update the IconDriverDebug.full file if necessary
 	update_IconDriverDebugFull
 fi
@@ -366,3 +370,4 @@ if [[ "$TrimFlag" == 'y' ]]; then
 fi
 
 done 10< <(echo "${Instrument_Array}")
+
