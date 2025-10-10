@@ -15,9 +15,10 @@ I suggest running this as a cron job every five minutes or so.
 
 ## Prerequisites
 
-This script requires a linux operating system with rsync. I've tested it in CentOS 6.8, 7.5 and Ubuntu 20
-on the local side and CentOS 7.5, CentOS 5.1 on the remote side. I have only tested this with ICON-NMR
-run out of Topspin 2.1 and 4.0.8. 
+This script requires a linux operating system with rsync. It has been tested in CentOS 6.8,
+7.5, AlmaLinux 9.6 and Ubuntu 20 on the local side and CentOS 7.5, CentOS 5.1, AlmaLinux 9.6,
+and RHEL7.3 on the remote side. It has been tested with ICON-NMR run out of Topspin 2.1, 
+3.6-3.8, and and 4.0.8-4.5. 
 
 The email feature requires that the application *sendmail* is working on the machine running the script.
 
@@ -59,31 +60,35 @@ Press enter at the prompt "Enter passphrase (empty for no passphrase):" to skip 
 2) Next, run this command (from the local machine) for each remote workstation:
 
 ```sh
-ssh-copy-id remote_username@remote_ip_address
+ssh-copy-id remote_username@remote_ip_or_hostname
 ```
 You will be prompted for the password for this remote workstation. 
 
 If ssh-copy-id is not available, you should be able to run this instead:
 
 ```sh
-cat ~/.ssh/id_rsa.pub | ssh remote_username@remote_ip_address "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+cat ~/.ssh/id_rsa.pub | ssh remote_username@remote_ip_or_hostname "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
-3) Last, add SSH aliases to your hosts file. In /etc/hosts, add entries:
+3) Last, add Host entries to your SSH config file. In ~/.ssh/config, add entries (for example):
 
 ```sh
-IPAddress DomainName SSHAlias
-```
 
-for each remote workstation.
+Host NEO400
+        Hostname chneo400.chem.university.edu
+        User nmr
 
-for example:
-```sh
-198.51.100.50     dmx500.chem.university.edu       DMX500
-198.51.100.54     av400.chem.university.edu        AV400
-198.51.100.59     neo400.chem.university.edu       NEO400
+Host AV400
+        Hostname chav400.chem.university.edu
+        User nmr1
+
+Host HD500
+        Hostname chhd500.chem.university.edu
+        User nmrsu
+
 ```
-The SSHAliases here should be the same names you enter as 'SSHAlias' in the input file. 
+The Host entries here should be the same SSHAliases you enter in the nmrsync input file, and the user shoud
+be the remote_username you used above. 
 
 You should now be able to SSH to the remote workstations without entering a password by typing: 
 
@@ -91,16 +96,7 @@ You should now be able to SSH to the remote workstations without entering a pass
 ssh remote_username@SSHAlias
 ```
 
-in addition to 
-```sh
-ssh remote_username@IPAddress 
-```
-and
-```sh
-ssh remote_username@DomainName 
-```
-
-The first time you do this, you will need to type "yes" to the question "Are you sure you want
+The first time you do this, you may need to type "yes" to the question "Are you sure you want
 to continue connecting (yes/no)?" however. After this, you will be able to run the script 
 automatically without manual password entry.
 
