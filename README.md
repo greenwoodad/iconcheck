@@ -1,12 +1,8 @@
 # iconcheck
 
-iconcheck is a bash script for monitoring ICON-NMR sessions on multiple NMR instruments
-using [rsync](https://download.samba.org/pub/rsync/rsync.html). It serves as an alternative
-to the email feature in ICON-NMR which is rather limited. It copies the IconDriverDebug 
-and Inmracct files over from remote machines via SSH and checks them for new errors. If 
-errors are found, it assembles them into log files and sends alert emails to the user and/or 
-facility manager according to settings in the file input/error_table. The error_table file 
-is meant to be customized by the user as new instrument-specific bugs inevitably emerge. 
+iconcheck is a bash script for monitoring [ICON-NMR](https://www.bruker.com/en/products-and-solutions/mr/nmr-software/topspin.html) automation sessions on multiple NMR instruments. It serves as an alternative to the built-in ICON-NMR email feature, which is rather limited. 
+
+The script uses [rsync](https://download.samba.org/pub/rsync/rsync.html) and SSH to periodically copy the `IconDriverDebug` and `Inmracct` log files from remote instrument computers, checks them for new errors, and sends alert emails to the user and/or facility manager according to settings in a customizable `error_table` file. New instrument-specific errors can be added to the error table as they inevitably emerge.
 
 This program requires that the local and remote computers have password-less SSH between them
 enabled via private rsa keys.
@@ -15,164 +11,185 @@ I suggest running this as a cron job every five minutes or so.
 
 ## Prerequisites
 
-This script requires a linux operating system with rsync. It has been tested in CentOS 6.8,
-7.5, AlmaLinux 9.6 and Ubuntu 20 on the local side and CentOS 7.5, CentOS 5.1, AlmaLinux 9.6,
-and RHEL7.3 on the remote side. It has been tested with ICON-NMR run out of Topspin 2.1, 
-3.6-3.8, and and 4.0.8-4.5. 
-
-The email feature requires that the application *sendmail* is working on the machine running the script.
+- Linux operating system (local machine)
+- `rsync` and a sendmail-compatible MTA (`sendmail`, `postfix`, `exim`, etc.) installed and configured on the local machine
+- Password-less SSH access from the local machine to each instrument computer (see below)
+- Topspin running ICON-NMR on each remote instrument computer
 
 ## Installing
+
 ```sh
 git clone https://github.com/greenwoodad/iconcheck
-```
-or 
-
-```sh
-git clone https://(your github username)@github.com/greenwoodad/iconcheck.git
-```
-
-followed by:
-```sh
 chmod +x ./iconcheck/iconcheck
 ```
+
 ## Getting Started
 
-### Setting up password-less ssh logins to instrument machines
+### 1. Set up sendmail
 
-Because this script is intended to be run as a cron job, it is necessary to authorize the local
-machine to access the remote machine(s) with password-less ssh login using ssh keys. Tutorials
-are available here: 
-* [How To Set Up Passwordless SSH Login](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/)
-* [OpenSSH Config File Examples](https://www.cyberciti.biz/faq/create-ssh-config-file-on-linux-unix/)
+Check whether a sendmail-compatible binary is available:
 
-Briefly: 
-1) On the machine you want to run the script and send emails from (as the user you want to do this as) run the command:
+```sh
+which sendmail
+```
+
+If it is not installed, install it with your package manager:
+
+```sh
+sudo apt-get install sendmail   # Debian/Ubuntu
+sudo yum install sendmail       # RHEL/CentOS
+sudo dnf install sendmail       # Fedora/Rocky/Alma
+```
+
+then start the service with:
+
+```sh
+sudo systemctl start sendmail
+sudo systemctl enable sendmail
+```
+
+The script defaults to `/usr/sbin/sendmail`. If your binary is elsewhere, update the `SendmailPath` variable near the top of the script. Common alternative locations are `/usr/bin/sendmail` and `/usr/lib/sendmail`.
+
+To verify that sendmail is correctly configured (run as root or a privileged user):
+
+```sh
+sudo /usr/sbin/sendmail -bv your@email.address
+```
+
+Expected output: `your@email.address... deliverable: mailer esmtp, host mail.university.edu, user your@email.address`
+
+### 2. Set up password-less SSH to instrument computers
+
+Because iconcheck is intended to run as a cron job, it requires password-less SSH access from the local machine to each instrument computer. Full tutorials are available here:
+
+- [How To Set Up Passwordless SSH Login](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/)
+- [OpenSSH Config File Examples](https://www.cyberciti.biz/faq/create-ssh-config-file-on-linux-unix/)
+
+**Briefly:**
+
+1. On the local machine, as the user who will run the cron job, generate an SSH key pair if you don't already have one:
 
 ```sh
 ssh-keygen -t rsa -b 4096
 ```
 
-This will generate files ~/.ssh/id_rsa and ~/.ssh/id_rsa.pub 
+Press Enter at the passphrase prompt to skip passphrase generation (required for unattended cron use).
 
-Press enter at the prompt "Enter passphrase (empty for no passphrase):" to skip passphrase generation.
-
-2) Next, run this command (from the local machine) for each remote workstation:
+2. Copy the public key to each instrument computer:
 
 ```sh
-ssh-copy-id remote_username@remote_ip_or_hostname
+ssh-copy-id remote_username@remote_ip_address
 ```
-You will be prompted for the password for this remote workstation. 
 
-If ssh-copy-id is not available, you should be able to run this instead:
+If `ssh-copy-id` is not available:
 
 ```sh
-cat ~/.ssh/id_rsa.pub | ssh remote_username@remote_ip_or_hostname "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+cat ~/.ssh/id_rsa.pub | ssh remote_username@remote_ip_address \
+  "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
-3) Last, add Host entries to your SSH config file. In ~/.ssh/config, add entries (for example):
+3. Add SSH aliases to `/etc/hosts` on the local machine:
+
+```
+198.51.100.50    av400.chem.university.edu    AV400
+198.51.100.54    neo400.chem.university.edu   NEO400
+198.51.100.59    hd500.chem.university.edu    HD500
+```
+
+The alias in the third column is what you will use as `SSHAlias` in the input file. After setup, you should be able to connect without a password:
 
 ```sh
-
-Host NEO400
-        Hostname chneo400.chem.university.edu
-        User nmr
-
-Host AV400
-        Hostname chav400.chem.university.edu
-        User nmr1
-
-Host HD500
-        Hostname chhd500.chem.university.edu
-        User nmrsu
-
-```
-The Host entries here should be the same SSHAliases you enter in the nmrsync input file, and the user shoud
-be the remote_username you used above. 
-
-You should now be able to SSH to the remote workstations without entering a password by typing: 
-
-```sh
-ssh remote_username@SSHAlias
+ssh remote_username@AV400
 ```
 
-The first time you do this, you may need to type "yes" to the question "Are you sure you want
-to continue connecting (yes/no)?" however. After this, you will be able to run the script 
-automatically without manual password entry.
+Run this command manually for each aliased machine. It will prompt you to confirm the host fingerprint. After you do this once, connections should work automatically and the script can be run as a cron job.
 
-### Configuring the input files
+### 3. Configure the input files
 
-#### Main input file
+#### Main input file (`input/iconcheck_input`)
 
-In the main input file (iconcheck_input) there are a number of parameters and paths to set:
+| Parameter | Description |
+|---|---|
+| `ScriptsPath` | Path to the iconcheck directory on the local machine. Use full path! |
+| `ManagerEmail` | Email address of the NMR facility manager |
+| `SSHAlias` | SSH alias for the instrument computer (must match `/etc/hosts`) |
+| `RemoteUser` | Username for SSH login on the remote computer |
+| `DebugPath` | Full path to the folder containing `IconDriverDebug` files on the remote computer (typically something like `/opt/topspin4.x.x/prog/curdir/nmr`) |
+| `INMRPath` | Full path to the folder containing `Inmracct.brief` on the remote computer (typically something like `/opt/topspin4.x.x/conf/instr/spect/inmrusers`) |
 
-* `ScriptsPath`: Full path to the location of the main script and the input, emailtxt, and log folders on local machine. Use full path!
-* `ManagerEmail`: Email address of the NMR facility manager.
-* `SSHAlias`: Alias for password-less SSH to this instrument computer.
-* `RemoteUser`: User on the remote computer that you can SSH as.
-* `DebugPath`: Folder containing IconDriverDebug files on remote computer (probably something like /opt/topspin_version/prog/curdir/nmr1). Use full path!
-* `INMRPath`: Folder containing Inmracct.brief file on remote computer (probably something like /opt/topspin_version/conf/instr/spect/inmrusers). Use full path!
+> **Important:** Field values cannot contain spaces. Instrument lines can be commented out with `#`.
 
-IMPORTANT: When editing this file, do not use entries that contain spaces. 
+#### `input/error_table`
 
-Instruments in the instrument table can be commented out with a #.
+The error table maps ICON-NMR error patterns to email templates and delivery settings. Each row has four fields:
 
-#### error_table
+1. **Error string** — a pattern (supporting `.*` wildcards) that matches the error as it appears in `IconDriverDebug`. Special characters such as `"` should be escaped (e.g., `\"`).
+2. **Email template** — filename of the email template in the `emailtxt/` folder to send to the user.
+3. **Mail user?** — `y` or `n`
+4. **Mail manager?** — `y` or `n`
 
-The error table lists various ICON-NMR errors and determines how iconcheck will respond to them. The first column contains bits of the 
-the error message as it appears in the IconDriverDebug file. (Note that in some cases special characters need to be escaped, such as `\"` 
-to escape a double quote. Wildcards can be used with `.*` as well.) The second column points to the relevant email text that will then 
-be sent, and the final two columns specify whether an email should be sent to the user, the NMR Manager, both, or neither. New entries 
-can be added as new errors develop.
+The error string should match a unique pattern that appears in lines beginning with `Auto_SetAddHistoryItem` or `AutoSet_AddHistoryItem` in the `IconDriverDebug` file, and should not match unrelated lines.
 
-If you want to add a new entry, you should try to identify a unique string that reliably occurs in IconDriverDebug for this error (and 
-not in other contexts) exactly once. Note that when adding a new error to the table, the script will submit emails corresponding to recent
-instances of the error the next time it runs. To avoid this, you may choose to set `mail user?` to `n` temporarily until the script
-adds the recent instances to the debugerrors log. 
+When adding a new error, note that the script will send emails for any recent matching instances the first time it runs. To avoid this, temporarily set `mail user?` to `n` until those instances have been logged, then switch it back.
 
-IMPORTANT: When editing this file, make sure there are always at least two spaces separating entries for proper parsing of the input file.
+> **Important:** Separate fields with at least two spaces for correct parsing.
 
-#### addressbook
+#### `input/addressbook`
 
-The address book provides email addresses for each ICON-NMR user. This is independent from the way ICON-NMR keeps track of email addresses
-(in user files in conf/instr/instrument_name/inmrusers) but is not hard to set up. The file /input/addressbook shows some example entries. 
-Each line should contain a username followed by that user's email address, separated by a space. If a user does not wish to receive emails,
-it is possible to simply omit that user's entry in this file.
+Maps ICON-NMR usernames to email addresses. Each line contains a username and an email address separated by a space:
+
+```
+jsmith    jsmith@university.edu
+mjones    mjones@university.edu
+```
+
+Users not listed in the addressbook will not receive emails. This file is independent of ICON-NMR's own user configuration.
 
 ## Usage
-
-The script can be run as follows:
 
 ```sh
 iconcheck [OPTIONS]... /path/to/iconcheck_input
 ```
 
-Options:
+| Option | Default | Description |
+|---|---|---|
+| `-h, -?, --help` | | Show help message |
+| `-i, --input` | | Set input file (flag optional) |
+| `-e, --email` | `y` | Set to `n` to skip sending emails |
+| `-t, --trim` | `y` | Set to `n` to skip trimming `IconDriverDebug.Instrument.full` |
+| `-v, --verbose` | | Print informational messages |
 
- `-h, -?, --help`                           Show help message.
+Default flag values and `SendmailPath` can be changed at the top of the script.
 
- `-i, --input`                              Set input file (flag optional).
+### Running as a cron job
 
- `-e, --email (default y)`                  Set to 'n' to skip sending emails
-
- `-t, --trim (default y)`                   Set to 'n' to skip trimming IconDriverDebug.Instrument.full
-
-
-The default values of these flags (as well as `SendmailPath`) can be set at the top of the main script.
-
-To run this as a cron job, make an entry in your crontab like this:
+Add an entry to your crontab (`crontab -e`):
 
 ```sh
 */5 * * * * /path/to/iconcheck "/path/to/input/iconcheck_input"
 ```
 
+This runs iconcheck every 5 minutes. Cron will send mail only if the script produces output, which occurs when errors are detected or warnings are raised. No output means no mail.
+
+## How it works
+
+On each run, iconcheck:
+
+1. SSHes into each instrument computer and rsyncs the latest `IconDriverDebug` and `Inmracct.brief` files
+2. Appends new content to a persistent full-length debug log (`IconDriverDebug.Instrument.full`)
+3. Scans the log for any error strings listed in `error_table` that have not been seen before
+4. For each new error, looks up the associated user and spectrum name, then sends alert emails according to `error_table` settings
+5. Logs processed errors to `debugerrors.Instrument.log` so they are not re-reported on subsequent runs
+
 ## Contributing
-Pull requests and bug reports are welcome. 
+
+Pull requests and bug reports are welcome.
 
 ## Authors
 
-  - **Alex Greenwood** - *provided script* -
-    [Greenwoodad](https://github.com/Greenwoodad)
+- **Alex Greenwood** — [Greenwoodad](https://github.com/Greenwoodad)
 
 ## License
+
 [MIT](https://choosealicense.com/licenses/mit/)
+
