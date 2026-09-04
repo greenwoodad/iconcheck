@@ -1,18 +1,18 @@
-Error phrase                          					 email text           	mail user?    mail manager?
+Error phrase                                        email text                mail user?     mail manager?
 
 Driver_Send.*Shim Failed                            emailtxt_shimfailure      y              y
 Driver_Send.*PrepareLock - lock is                  emailtxt_preparelock      y              y
-Driver_Send.* not hovering..           		    emailtxt_hovering         y              y
+Driver_Send.* not hovering..                        emailtxt_hovering         y              y
 Driver_Send.*Lock failed after multiple             emailtxt_lockfailure      y              y
-Driver_Send.*No sample     	       		    emailtxt_nosample         y              y
+Driver_Send.*No sample                              emailtxt_nosample         y              y
 Driver_Send.*Error: Empty answer from BacsCommand   emailtxt_genfailure       y              y
 Driver_Send.*Transfer .*not move the sample chain   emailtxt_genfailure       y              y
 Driver_Send.*atm \"ATM Failed                       emailtxt_atmfailure       y              y
-run_paused 1                           		    emailtxt_genfailure       n              y
-run_paused 2                           		    emailtxt_genfailure       n              y
-run_paused 3                           		    emailtxt_genfailure       n              y
+run_paused 1                                        emailtxt_genfailure       n              y
+run_paused 2                                        emailtxt_genfailure       n              y
+run_paused 3                                        emailtxt_genfailure       n              y
 Driver_Send.*Missing empty position                 emailtxt_genfailure       n              y
-Driver_Send.*not in the cassette       		    emailtxt_genfailure       n              y
+Driver_Send.*not in the cassette                    emailtxt_genfailure       n              y
 Driver_Send.*More than one sample was detected in   emailtxt_genfailure       n              y
 Driver_Send.*The sample is not hovering anymore     emailtxt_genfailure       n              y
 Driver_Send.*segmentation violation), Shim failed   emailtxt_genfailure       y              y
