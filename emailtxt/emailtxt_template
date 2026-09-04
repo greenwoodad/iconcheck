@@ -1,10 +1,10 @@
-'Dear user: '$NMRUser',
+Dear user: $NMRUser,
       
-Your experiment on the '$Instrument', '$Spectrum', '$EmailText'
+Your experiment on the $Instrument, $Spectrum, $EmailText
       
-Error text: '$error'
+Error text: $error
   
-Sent to: '$1'
+Sent to: $1
 
-       --The NMR Facility'
+       --The NMR Facility
 
