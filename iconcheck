@@ -269,10 +269,10 @@ function get_user_spectrum () {
             | grep -o '[^ ]* /[^ ]* {[^}]*} {[^}]*} {[^}]*}' \
             | awk '{print $1}') || true
 
-        # Extract spectrum: strip command name and optional .as.fm prefix
+        # Extract spectrum: strip command name and optional Tcl widget path token (e.g. .as.fm, .as_1.fm)
         AfterCmd=$(echo "$AddHistoryLine" \
-            | grep -oE '(Auto_SetAddHistoryItem|AutoSet_AddHistoryItem)( \.as\.fm)? .*' \
-            | sed 's/^[^ ]* //' | sed 's/^\.as\.fm //') || true
+            | grep -oE '(Auto_SetAddHistoryItem|AutoSet_AddHistoryItem) .*' \
+            | sed 's/^[^ ]* //' | sed 's/^\.[^ ]*\.fm //') || true
 
         if [[ "$AfterCmd" == "{"* ]]; then
             Spectrum=$(echo "$AfterCmd" | grep -o '^{[^}]*}' | tr -d '{}')
